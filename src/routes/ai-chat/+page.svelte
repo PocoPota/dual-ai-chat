@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { writable } from 'svelte/store';
+  import { get, writable } from 'svelte/store';
 
   const messages = writable<{ role: 'user' | 'model'; text: string }[]>([]);
   let input = '';
@@ -32,7 +32,11 @@
       const res = await fetch('/api/gemini-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText, character: selectedCharacter })
+        body: JSON.stringify({
+          message: userText,
+          character: selectedCharacter,
+          history: get(messages)
+        })
       });
 
       const { text } = await res.json();
