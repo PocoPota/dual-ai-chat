@@ -2,7 +2,6 @@
   import { writable } from 'svelte/store';
 
   const messages = writable<{ role: string; text: string }[]>([]);
-  import { reset } from '$lib/dual-ai-chat/state';
   let running = false;
 
   let systemPrompts = {
@@ -19,7 +18,7 @@
       return;
     }
     running = true;
-    messages.set([]);
+    messages.set([]); // チャット開始時にもメッセージをクリア
     await fetch('/api/dual-ai-chat/start', {
       method: 'POST',
       body: JSON.stringify({ prompts: systemPrompts, apiKey }),
@@ -40,9 +39,10 @@
     const json = await res.json();
     messages.set(json.messages);
   }
-  function resetMessages() {
+
+  async function resetMessages() {
+    await stopChat();
     messages.set([]);
-    reset();
   }
 </script>
 
