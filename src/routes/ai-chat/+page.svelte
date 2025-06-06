@@ -1,26 +1,38 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
 
-  // チャット履歴のストア
   const messages = writable<{ role: 'user' | 'model'; text: string }[]>([]);
   let input = '';
   let loading = false;
 
-  // メッセージ送信処理
+  type Character = {
+    id: string;
+    name: string;
+    systemPrompt: string;
+  };
+
+  let characters: Character[] = [];
+  let selectedCharacter: Character | null = null;
+
+  onMount(async () => {
+    const res = await fetch('/characters.json');
+    characters = await res.json();
+    selectedCharacter = characters[0];
+  });
+
   async function sendMessage() {
-    if (!input.trim()) return;
+    if (!input.trim() || !selectedCharacter) return;
     const userText = input;
     input = '';
     loading = true;
-
-    // ユーザーのメッセージを追加
     messages.update(m => [...m, { role: 'user', text: userText }]);
 
     try {
       const res = await fetch('/api/gemini-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText })
+        body: JSON.stringify({ message: userText, character: selectedCharacter })
       });
 
       const { text } = await res.json();
@@ -33,12 +45,43 @@
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
       event.preventDefault();
       sendMessage();
     }
   }
 </script>
+
+<div class="chat-container">
+  <!-- キャラ選択 -->
+  <div class="mb-2">
+    <p>AIキャラを選んでください:</p>
+    <select bind:value={selectedCharacter}>
+      {#each characters as char}
+        <option value={char}>{char.name}</option>
+      {/each}
+    </select>
+  </div>
+
+  <!-- チャット -->
+  <div class="chat-box">
+    {#each $messages as msg}
+      <div class="message" style="text-align: {msg.role === 'user' ? 'right' : 'left'};">
+        <div class="{msg.role}">{msg.text}</div>
+      </div>
+    {/each}
+  </div>
+
+  <!-- 入力 -->
+  <div class="input-box">
+    <textarea
+      bind:value={input}
+      on:keydown={handleKeydown}
+      placeholder="Type a message..."
+    ></textarea>
+    <button on:click={sendMessage} disabled={loading}>Send</button>
+  </div>
+</div>
 
 <style lang="scss">
   .chat-box{
@@ -60,21 +103,3 @@
     }
   }
 </style>
-
-<div class="chat-container">
-  <div class="chat-box">
-    {#each $messages as msg}
-      <div class="message" style="text-align: {msg.role === 'user' ? 'right' : 'left'};">
-        <div class="{msg.role}">{msg.text}</div>
-      </div>
-    {/each}
-  </div>
-
-  <div class="input-box">
-    <textarea
-      bind:value={input}
-      placeholder="Type a message..."
-    ></textarea>
-    <button on:click={sendMessage} disabled={loading}>Send</button>
-  </div>
-</div>
