@@ -2,6 +2,7 @@
   import { writable } from 'svelte/store';
 
   const messages = writable<{ role: string; text: string }[]>([]);
+  import { reset } from '$lib/dual-ai-chat/state';
   let running = false;
 
   let systemPrompts = {
@@ -41,6 +42,7 @@
   }
   function resetMessages() {
     messages.set([]);
+    reset();
   }
 </script>
 
