@@ -18,7 +18,8 @@ export const POST: RequestHandler = async ({ request }) => {
     generationConfig: { maxOutputTokens: 10000 }
   });
 
-  const result = await chatSession.sendMessage(message);
+  const prompt = `${character.systemPrompt}\n\nユーザーの発言: ${message}`;
+  const result = await chatSession.sendMessage(prompt);
   const response = await result.response;
   const text = await response.text();
 
