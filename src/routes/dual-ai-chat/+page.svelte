@@ -39,6 +39,9 @@
     const json = await res.json();
     messages.set(json.messages);
   }
+  function resetMessages() {
+    messages.set([]);
+  }
 </script>
 
 <h1>Dual AI Chat</h1>
@@ -47,14 +50,15 @@
 <input type="password" bind:value={apiKey} class="w-full mb-4" />
 
 <h2>AI1</h2>
-<textarea bind:value={systemPrompts.ai1} rows="3" class="w-full"></textarea>
+<textarea bind:value={systemPrompts.ai1} rows="3"></textarea>
 
 <h2>AI2</h2>
-<textarea bind:value={systemPrompts.ai2} rows="3" class="w-full"></textarea>
+<textarea bind:value={systemPrompts.ai2} rows="3"></textarea>
 
 <div class="my-4">
-  <button on:click={startChat} disabled={running} class="mr-2">Start</button>
+  <button on:click={startChat} disabled={running}>Start</button>
   <button on:click={stopChat} disabled={!running}>Stop</button>
+  <button on:click={resetMessages}>履歴リセット</button>
 </div>
 
 <div>
