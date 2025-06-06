@@ -9,14 +9,19 @@
     ai2: 'あなたは鋭い評論家です。'
   };
 
+  let apiKey = ''; // 🔑 ユーザー入力のAPIキー
   let intervalId: ReturnType<typeof setInterval>;
 
   async function startChat() {
+    if (!apiKey.trim()) {
+      alert('APIキーを入力してください');
+      return;
+    }
     running = true;
     messages.set([]);
     await fetch('/api/dual-ai-chat/start', {
       method: 'POST',
-      body: JSON.stringify(systemPrompts),
+      body: JSON.stringify({ prompts: systemPrompts, apiKey }),
       headers: { 'Content-Type': 'application/json' }
     });
 
@@ -38,22 +43,23 @@
 
 <h1>Dual AI Chat</h1>
 
+<div>Gemini APIキーを入力：</div>
+<input type="password" bind:value={apiKey} class="w-full mb-4" />
+
+<h2>AI1</h2>
+<textarea bind:value={systemPrompts.ai1} rows="3" class="w-full"></textarea>
+
+<h2>AI2</h2>
+<textarea bind:value={systemPrompts.ai2} rows="3" class="w-full"></textarea>
+
+<div class="my-4">
+  <button on:click={startChat} disabled={running} class="mr-2">Start</button>
+  <button on:click={stopChat} disabled={!running}>Stop</button>
+</div>
+
 <div>
-  <h2>AI1 System Prompt</h2>
-  <textarea bind:value={systemPrompts.ai1} rows="4" class="w-full"></textarea>
-
-  <h2>AI2 System Prompt</h2>
-  <textarea bind:value={systemPrompts.ai2} rows="4" class="w-full"></textarea>
-
-  <div class="my-4">
-    <button on:click={startChat} disabled={running} class="mr-2">Start</button>
-    <button on:click={stopChat} disabled={!running}>Stop</button>
-  </div>
-
-  <div>
-    <h2>Conversation</h2>
-    {#each $messages as msg}
-      <p><strong>{msg.role}:</strong> {msg.text}</p>
-    {/each}
-  </div>
+  <h2>Conversation</h2>
+  {#each $messages as msg}
+    <p><strong>{msg.role}:</strong> {msg.text}</p>
+  {/each}
 </div>

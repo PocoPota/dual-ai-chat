@@ -8,15 +8,18 @@ import {
   pushToHistory,
   getHistory
 } from '$lib/dual-ai-chat/state';
-import { GEMINI_API_KEY } from '$env/static/private';
-
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 export const POST: RequestHandler = async ({ request }) => {
-  const prompts = await request.json();
+  const { prompts, apiKey } = await request.json();
+
+  if (typeof apiKey !== 'string' || apiKey.length < 10) {
+    return json({ error: 'APIキーが無効です' }, { status: 400 });
+  }
 
   reset();
   setRunning(true);
+
+  const genAI = new GoogleGenerativeAI(apiKey); // ← ユーザーのキーを使用
 
   (async () => {
     let speaker: 'ai1' | 'ai2' = 'ai1';
